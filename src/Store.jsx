@@ -1,12 +1,18 @@
-import { createStore } from "redux";
+import { combineReducers, createStore } from "redux";
 
-const initialState = {
+const initialStateAccount = {
   balance: 0,
   loan: 0,
   loanPurpose: "",
 };
 
-function reducer(state = initialState, action) {
+const initialStateCustomer = {
+  name: "",
+  nationalId: "",
+  createdAt: "",
+};
+
+function accountReducer(state = initialStateAccount, action) {
   switch (action.type) {
     case "account/deposit":
       return {
@@ -38,7 +44,33 @@ function reducer(state = initialState, action) {
   }
 }
 
-const store = createStore(reducer);
+function customerReducer(state = initialStateCustomer, action) {
+  switch (action.type) {
+    case "customer/createCustomer":
+      return {
+        ...state,
+        name: action.payload.name,
+        nationalId: action.payload.nationalId,
+        createdAt: action.payload.createdAt,
+      };
+
+    case "customer/updateCustomer":
+      return {
+        ...state,
+        name: action.payload,
+      };
+
+    default:
+      return state;
+  }
+}
+
+const rootReducer = combineReducers({
+  account: accountReducer,
+  customer: customerReducer,
+});
+
+const store = createStore(rootReducer);
 
 function deposit(amount) {
   return {
@@ -70,6 +102,24 @@ function payLoan() {
   };
 }
 
+function createCustomer(name, nationalId) {
+  return {
+    type: "customer/createCustomer",
+    payload: {
+      name,
+      nationalId,
+      createdAt: new Date().toISOString(),
+    },
+  };
+}
+
+function updateCustomer(name) {
+  return {
+    type: "customer/updateCustomer",
+    payload: name,
+  };
+}
+
 store.dispatch(deposit(1000));
 console.log(store.getState());
 
@@ -80,6 +130,12 @@ store.dispatch(requestLoan(800, "buy a car"));
 console.log(store.getState());
 
 store.dispatch(payLoan());
+console.log(store.getState());
+
+store.dispatch(createCustomer("John Doe", "123456789"));
+console.log(store.getState());
+
+store.dispatch(updateCustomer("Jane Doe"));
 console.log(store.getState());
 
 // store.dispatch({
