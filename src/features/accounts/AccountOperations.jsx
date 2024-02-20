@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { deposit, payLoan, requestLoan, withdraw } from "./accountSlice";
 
 function AccountOperations() {
   const [depositAmount, setDepositAmount] = useState("");
@@ -7,13 +9,42 @@ function AccountOperations() {
   const [loanPurpose, setLoanPurpose] = useState("");
   const [currency, setCurrency] = useState("USD");
 
-  function handleDeposit() {}
+  const dispatch = useDispatch();
+  const { loan, balance } = useSelector((store) => store.account);
 
-  function handleWithdrawal() {}
+  function handleDeposit() {
+    if (!depositAmount || depositAmount < 0 || !currency) return;
+    dispatch(deposit(depositAmount));
 
-  function handleRequestLoan() {}
+    setDepositAmount("");
+    setCurrency("USD");
+  }
 
-  function handlePayLoan() {}
+  function handleWithdrawal() {
+    if (
+      !withdrawalAmount ||
+      withdrawalAmount < 0 ||
+      balance - loan < withdrawalAmount
+    )
+      return;
+    dispatch(withdraw(withdrawalAmount));
+
+    setWithdrawalAmount("");
+  }
+
+  function handleRequestLoan() {
+    if (!loanAmount || loanAmount < 0 || !loanPurpose) return;
+
+    dispatch(requestLoan(loanAmount, loanPurpose));
+
+    setLoanAmount("");
+    setLoanPurpose("");
+  }
+
+  function handlePayLoan() {
+    if (!loan) return;
+    dispatch(payLoan());
+  }
 
   return (
     <div>
@@ -23,6 +54,7 @@ function AccountOperations() {
           <label>Deposit</label>
           <input
             type="number"
+            min={0}
             value={depositAmount}
             onChange={(e) => setDepositAmount(+e.target.value)}
           />
@@ -42,6 +74,7 @@ function AccountOperations() {
           <label>Withdraw</label>
           <input
             type="number"
+            min={0}
             value={withdrawalAmount}
             onChange={(e) => setWithdrawalAmount(+e.target.value)}
           />
@@ -54,6 +87,7 @@ function AccountOperations() {
           <label>Request loan</label>
           <input
             type="number"
+            min={0}
             value={loanAmount}
             onChange={(e) => setLoanAmount(+e.target.value)}
             placeholder="Loan amount"
@@ -66,10 +100,12 @@ function AccountOperations() {
           <button onClick={handleRequestLoan}>Request loan</button>
         </div>
 
-        <div>
-          <span>Pay back $X</span>
-          <button onClick={handlePayLoan}>Pay loan</button>
-        </div>
+        {loan > 0 && (
+          <div>
+            <span>Pay back ${loan}</span>
+            <button onClick={handlePayLoan}>Pay loan</button>
+          </div>
+        )}
       </div>
     </div>
   );
